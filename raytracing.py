@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# ***** Tamanho de la pantalla
+# ***** Tamanho da pantalla
 w = 400 
 h = 300
 
@@ -14,7 +14,7 @@ def intersect_plane(O, D, P, N):
     # plane (P, N), or +inf if there is no intersection.
     # O and P are 3D points, D and N (normal) are normalized vectors.
     denom = np.dot(D, N)
-    if np.abs(denom) < 1e-6: # ***** Comprueba si hay intersección
+    if np.abs(denom) < 1e-6: # ***** Comprueba si hay interseccion
         return np.inf
     d = np.dot(P - O, N) / denom
     if d < 0:
@@ -60,7 +60,7 @@ def get_color(obj, M):
         color = color(M)
     return color
 
-def trace_ray(rayO, rayD): # ***** Trazado de rayos
+def trace_ray(rayO, rayD): # ***** Onde se usa a luz
     # Find first point of intersection with the scene.
     t = np.inf
     for i, obj in enumerate(scene):
@@ -70,26 +70,28 @@ def trace_ray(rayO, rayD): # ***** Trazado de rayos
     # Return None if the ray does not intersect any object.
     if t == np.inf:
         return
-    # Find the object.
+    # Find the object. ***** Sacamos la escena fuera del FOR para que no se reinicie por cada paso
     obj = scene[obj_idx]
     # Find the point of intersection on the object.
     M = rayO + rayD * t
     # Find properties of the object.
     N = get_normal(obj, M)
     color = get_color(obj, M)
-    toL = normalize(L - M)
-    toO = normalize(O - M)
-    # Shadow: find if the point is shadowed or not.
-    l = [intersect(M + N * .0001, toL, obj_sh) 
-            for k, obj_sh in enumerate(scene) if k != obj_idx]
-    if l and min(l) < np.inf:
-        return
-    # Start computing the color.
     col_ray = ambient
-    # Lambert shading (diffuse).
-    col_ray += obj.get('diffuse_c', diffuse_c) * max(np.dot(N, toL), 0) * color
-    # Blinn-Phong shading (specular).
-    col_ray += obj.get('specular_c', specular_c) * max(np.dot(N, normalize(toL + toO)), 0) ** specular_k * color_light
+    for i in range(len(L)): # ***** Creamos un FOR para que recorra el array de luces
+	    toL = normalize(L[i] - M) # ***** Calculamos toL por cada luz existente
+	    toO = normalize(O - M)
+	    # Shadow: find if the point is shadowed or not.
+	    l = [intersect(M + N * .0001, toL, obj_sh) 
+		    for k, obj_sh in enumerate(scene) if k != obj_idx]
+	    if l and min(l) < np.inf:
+		continue # ***** Para que siga recorriendo el bucle cambiamos el RETURN por un CONTINUE
+	    # Start computing the color.
+
+	    # Lambert shading (diffuse).
+	    col_ray += obj.get('diffuse_c', diffuse_c) * max(np.dot(N, toL), 0) * color
+	    # Blinn-Phong shading (specular).
+	    col_ray += obj.get('specular_c', specular_c) * max(np.dot(N, normalize(toL + toO)), 0) ** specular_k * color_light
     return obj, M, N, col_ray
 
 def add_sphere(position, radius, color):
@@ -112,8 +114,8 @@ scene = [add_sphere([.75, .1, 1.], .6, [0., 0., 1.]),
          add_plane([0., -.5, 0.], [0., 1., 0.]),
     ]
 
-# Light position and color.
-L = np.array([5., 5., -10.])
+# Light position and color. ***** Creamos un array para anhadir luces de forma simple
+L = [np.array([5., 5., -10.]), np.array([-5., 6., -11.])]
 color_light = np.ones(3)
 
 # Default light and material parameters.
