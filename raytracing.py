@@ -116,6 +116,7 @@ scene = [add_sphere([.75, .1, 1.], .6, [0., 0., 1.]),
 
 # Light position and color. ***** Creamos un array para anhadir luces de forma simple
 L = [np.array([5., 5., -10.]), np.array([-5., 6., -11.])]
+# TODO Implementar array de colores para permitir luces con distintos colores
 color_light = np.ones(3)
 
 # Default light and material parameters.
